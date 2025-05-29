@@ -1,0 +1,10 @@
+[workspace]
+members = [
+    "hw01",
+    "hw02",
+    "hw03",
+]
+
+[profile.release]
+lto = true
+
