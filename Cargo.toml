@@ -3,6 +3,7 @@ members = [
     "hw01",
     "hw02",
     "hw03",
+    "hw04",
 ]
 
 [profile.release]
