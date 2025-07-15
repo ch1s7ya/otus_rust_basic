@@ -4,8 +4,9 @@ members = [
     "hw02",
     "hw03",
     "hw04",
+    "hw05",
 ]
+resolver = "3"
 
 [profile.release]
 lto = true
-
