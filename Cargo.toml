@@ -4,7 +4,7 @@ members = [
     "hw02",
     "hw03",
     "hw04",
-    "hw05", "hw06",
+    "hw05", "hw06", "hw07",
 ]
 resolver = "3"
 
