@@ -1,4 +1,4 @@
-#[derive(Debug,PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum WriteError {
     NoSpaceLeft,
 }
@@ -21,7 +21,7 @@ pub fn create(size: usize) -> RingBuffer {
 
 pub fn write(rb: &mut RingBuffer, buf: &str) -> Result<usize, WriteError> {
     if rb.is_full {
-        return Err(WriteError::NoSpaceLeft)
+        return Err(WriteError::NoSpaceLeft);
     }
 
     let buf = buf.as_bytes();
@@ -51,7 +51,7 @@ pub fn write(rb: &mut RingBuffer, buf: &str) -> Result<usize, WriteError> {
 
 pub fn read(rb: &mut RingBuffer, b: usize) -> Option<String> {
     if rb.read_idx == rb.write_idx && !rb.is_full {
-        return None
+        return None;
     }
     let mut result = vec![0; b];
     let capacity = rb.data.len();
@@ -147,7 +147,7 @@ mod tests {
     fn test_read_empty_buffer() {
         let mut rb = create(3);
         let d = read(&mut rb, 1);
-        
+
         assert_eq!(d, None)
     }
 
@@ -156,7 +156,7 @@ mod tests {
         let mut rb = create(3);
         let _ = write(&mut rb, "abc");
         let b = write(&mut rb, "d");
-        
+
         assert_eq!(b, Err(WriteError::NoSpaceLeft))
     }
 }
