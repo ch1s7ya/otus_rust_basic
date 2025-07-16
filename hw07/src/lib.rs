@@ -19,10 +19,12 @@ pub fn create(size: usize) -> RingBuffer {
     }
 }
 
-pub fn write(rb: &mut RingBuffer, buf: &[u8]) -> Result<usize, WriteError> {
+pub fn write(rb: &mut RingBuffer, buf: &str) -> Result<usize, WriteError> {
     if rb.is_full {
         return Err(WriteError::NoSpaceLeft)
     }
+
+    let buf = buf.as_bytes();
 
     let capacity = rb.data.len();
 
@@ -47,7 +49,7 @@ pub fn write(rb: &mut RingBuffer, buf: &[u8]) -> Result<usize, WriteError> {
     Ok(bytes_to_write)
 }
 
-pub fn read(rb: &mut RingBuffer, b: usize) -> Option<Vec<u8>> {
+pub fn read(rb: &mut RingBuffer, b: usize) -> Option<String> {
     if rb.read_idx == rb.write_idx && !rb.is_full {
         return None
     }
@@ -61,7 +63,7 @@ pub fn read(rb: &mut RingBuffer, b: usize) -> Option<Vec<u8>> {
 
     rb.is_full = false;
 
-    Some(result)
+    Some(String::from_utf8_lossy(&result).to_string())
 }
 
 #[cfg(test)]
@@ -79,14 +81,14 @@ mod tests {
     fn test_simple_write() {
         let mut rb: RingBuffer = create(3);
 
-        let b = write(&mut rb, &[b'a', b'b']);
+        let b = write(&mut rb, "ab");
         assert_eq!(b, Ok(2));
     }
 
     #[test]
     fn test_write_full_buffer() {
         let mut rb: RingBuffer = create(3);
-        let b = write(&mut rb, &[b'a', b'b', b'c']);
+        let b = write(&mut rb, "abc");
         assert_eq!(b, Ok(3));
         assert!(rb.is_full);
     }
@@ -94,19 +96,19 @@ mod tests {
     #[test]
     fn test_simple_read() {
         let mut rb: RingBuffer = create(3);
-        let _b = write(&mut rb, &[b'a', b'b']);
+        let _b = write(&mut rb, "ab");
         let d = read(&mut rb, 1);
-        assert_eq!(d, Some(vec![b'a']));
+        assert_eq!(d, Some("a".to_string()));
         assert_eq!(rb.read_idx, 1);
     }
 
     #[test]
     fn test_read_full_buffer() {
         let mut rb: RingBuffer = create(3);
-        let _b = write(&mut rb, &[b'a', b'b', b'c']);
+        let _b = write(&mut rb, "abc");
         let d = read(&mut rb, 1);
 
-        assert_eq!(d, Some(vec![b'a']));
+        assert_eq!(d, Some("a".to_string()));
         assert_eq!(rb.read_idx, 1);
         assert_eq!(rb.write_idx, 0);
         assert!(!rb.is_full);
@@ -116,27 +118,27 @@ mod tests {
     fn test_rw_full() {
         let mut rb: RingBuffer = create(3);
 
-        let mut b = write(&mut rb, &[b'a', b'b']);
+        let mut b = write(&mut rb, "ab");
         assert_eq!(b, Ok(2));
         assert_eq!(rb.write_idx, 2);
 
-        b = write(&mut rb, &[b'c', b'd']);
+        b = write(&mut rb, "cd");
         assert_eq!(b, Ok(1));
         assert_eq!(rb.write_idx, 0);
         assert!(rb.is_full);
 
         let d = read(&mut rb, 1);
-        assert_eq!(d, Some(vec![b'a']));
+        assert_eq!(d, Some("a".to_string()));
         assert_eq!(rb.read_idx, 1);
         assert!(!rb.is_full);
 
-        b = write(&mut rb, &[b'e']);
+        b = write(&mut rb, "e");
         assert_eq!(b, Ok(1));
         assert_eq!(rb.write_idx, 1);
         assert!(rb.is_full);
 
         let d = read(&mut rb, 2);
-        assert_eq!(d, Some(vec![b'b', b'c']));
+        assert_eq!(d, Some("bc".to_string()));
         assert_eq!(rb.read_idx, 0);
         assert!(!rb.is_full);
     }
@@ -152,8 +154,8 @@ mod tests {
     #[test]
     fn test_write_to_full_buffer() {
         let mut rb = create(3);
-        let mut b = write(&mut rb, &[b'c', b'd', b'c']);
-        b = write(&mut rb, &[b'd']);
+        let _ = write(&mut rb, "abc");
+        let b = write(&mut rb, "d");
         
         assert_eq!(b, Err(WriteError::NoSpaceLeft))
     }
